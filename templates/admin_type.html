@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>栏目分类管理 — 新闻公告管理系统</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="admin-page">
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <span class="brand">📋 新闻公告管理系统</span>
+      <nav class="top-nav">
+        <a href="/admin/type/" class="active">栏目管理</a>
+        <a href="/admin/news/">公告管理</a>
+        <a href="/admin/logout/" class="btn-logout">退出</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="toolbar">
+      <h2>栏目分类管理</h2>
+      <button class="btn btn-primary" onclick="openTypeModal()">+ 新增栏目</button>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:60px">序号</th>
+          <th>栏目名称</th>
+          <th style="width:160px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in types %}
+        <tr>
+          <td>{{ forloop.counter }}</td>
+          <td>{{ t.type_name }}</td>
+          <td class="actions">
+            <button class="btn btn-sm btn-outline" onclick="openTypeModal({{ t.id }}, '{{ t.type_name|escapejs }}')">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteType({{ t.id }}, '{{ t.type_name|escapejs }}')">删除</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="3" class="empty-row">暂无栏目数据，请点击"新增栏目"添加</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </main>
+
+  <!-- 新增 / 编辑栏目弹窗 -->
+  <div class="modal-overlay" id="typeModal" style="display:none">
+    <div class="modal">
+      <div class="modal-header">
+        <span id="typeModalTitle">新增栏目</span>
+        <button class="modal-close" onclick="closeTypeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="typeModalError" class="alert alert-error" style="display:none"></div>
+        <input type="hidden" id="typeId">
+        <div class="form-group">
+          <label for="typeName">栏目名称</label>
+          <input type="text" id="typeName" class="form-control" placeholder="请输入栏目名称" maxlength="50">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeTypeModal()">取消</button>
+        <button class="btn btn-primary" id="typeSaveBtn" onclick="saveType()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>

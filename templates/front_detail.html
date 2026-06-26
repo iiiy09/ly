@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ news.title }} — 新闻公告</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="front-page">
+  <header class="front-header">
+    <div class="front-header-inner">
+      <h1>📋 新闻公告</h1>
+    </div>
+  </header>
+
+  <main class="main-content front-content">
+    <article class="news-detail">
+      <h1 class="detail-title">{{ news.title }}</h1>
+      <div class="detail-meta">
+        <span class="tag">{{ news.news_type.type_name }}</span>
+        <span>发布人：{{ news.author }}</span>
+        <span>发布时间：{{ news.publish_time|date:"Y-m-d H:i" }}</span>
+      </div>
+      <div class="detail-content">
+        {{ news.content|linebreaks }}
+      </div>
+      <div class="detail-back">
+        <a href="/" class="btn btn-default">← 返回列表</a>
+      </div>
+    </article>
+  </main>
+
+  <footer class="front-footer">
+    <a href="/admin/login/">管理入口</a>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新闻公告</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="front-page">
+  <header class="front-header">
+    <div class="front-header-inner">
+      <h1>📋 新闻公告</h1>
+      <p class="header-subtitle">欢迎浏览最新公告信息</p>
+    </div>
+  </header>
+
+  <nav class="type-nav">
+    <div class="type-nav-inner">
+      <a href="/" class="{% if current_type_id == 0 %}active{% endif %}">全部</a>
+      {% for t in types %}
+      <a href="?type_id={{ t.id }}" class="{% if current_type_id == t.id %}active{% endif %}">{{ t.type_name }}</a>
+      {% endfor %}
+    </div>
+  </nav>
+
+  <main class="main-content front-content">
+    {% if page_obj %}
+    <div class="news-list">
+      {% for news in page_obj %}
+      <div class="news-item">
+        <a href="/detail/{{ news.id }}/" class="news-item-title">{{ news.title }}</a>
+        <div class="news-item-meta">
+          <span class="tag">{{ news.news_type.type_name }}</span>
+          <span>{{ news.author }}</span>
+          <span>{{ news.publish_time|date:"Y-m-d H:i" }}</span>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}{% if current_type_id %}&type_id={{ current_type_id }}{% endif %}" class="page-link">上一页</a>
+      {% endif %}
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+        <span class="page-link active">{{ p }}</span>
+        {% else %}
+        <a href="?page={{ p }}{% if current_type_id %}&type_id={{ current_type_id }}{% endif %}" class="page-link">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}{% if current_type_id %}&type_id={{ current_type_id }}{% endif %}" class="page-link">下一页</a>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+      <p>暂无新闻公告</p>
+    </div>
+    {% endif %}
+  </main>
+
+  <footer class="front-footer">
+    <a href="/admin/login/">管理入口</a>
+  </footer>
+</body>
+</html>

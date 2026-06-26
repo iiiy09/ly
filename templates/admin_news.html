@@ -1,0 +1,149 @@
+﻿<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>新闻公告管理 — 新闻公告管理系统</title>
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="admin-page">
+  <header class="top-bar">
+    <div class="top-bar-inner">
+      <span class="brand">📋 新闻公告管理系统</span>
+      <nav class="top-nav">
+        <a href="/admin/type/">栏目管理</a>
+        <a href="/admin/news/" class="active">公告管理</a>
+        <a href="/admin/logout/" class="btn-logout">退出</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="toolbar">
+      <h2>新闻公告管理</h2>
+      <div class="toolbar-actions">
+        <button class="btn btn-primary" onclick="openNewsModal()">+ 新增公告</button>
+        <button class="btn btn-danger" onclick="batchDelete()">批量删除</button>
+      </div>
+    </div>
+
+    <!-- 搜索筛选区 -->
+    <div class="filter-bar">
+      <form method="get" action="/admin/news/" class="filter-form">
+        <input type="text" name="q" class="form-control" placeholder="按标题搜索..." value="{{ q }}">
+        <select name="type_id" class="form-control">
+          <option value="">全部栏目</option>
+          {% for t in types %}
+          <option value="{{ t.id }}" {% if type_id == t.id|stringformat:"s" %}selected{% endif %}>{{ t.type_name }}</option>
+          {% endfor %}
+        </select>
+        <input type="date" name="date_from" class="form-control" value="{{ date_from }}" title="开始日期">
+        <input type="date" name="date_to" class="form-control" value="{{ date_to }}" title="结束日期">
+        <button type="submit" class="btn btn-default">搜索</button>
+        <a href="/admin/news/" class="btn btn-text">重置</a>
+      </form>
+    </div>
+
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th style="width:40px"><input type="checkbox" id="selectAll" onclick="toggleSelectAll()"></th>
+          <th style="width:50px">序号</th>
+          <th>标题</th>
+          <th style="width:120px">栏目</th>
+          <th style="width:80px">发布人</th>
+          <th style="width:160px">发布时间</th>
+          <th style="width:140px">操作</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for news in page_obj %}
+        <tr data-news-id="{{ news.id }}"
+            data-title="{{ news.title|escapejs }}"
+            data-content="{{ news.content|escapejs }}"
+            data-author="{{ news.author|escapejs }}"
+            data-type-id="{{ news.news_type_id }}">
+          <td><input type="checkbox" class="news-check" value="{{ news.id }}"></td>
+          <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+          <td><a href="/detail/{{ news.id }}/" target="_blank" class="news-title-link">{{ news.title }}</a></td>
+          <td>{{ news.news_type.type_name }}</td>
+          <td>{{ news.author }}</td>
+          <td>{{ news.publish_time|date:"Y-m-d H:i" }}</td>
+          <td class="actions">
+            <button class="btn btn-sm btn-outline" onclick="openNewsModalFromRow(this)">编辑</button>
+            <button class="btn btn-sm btn-danger" onclick="deleteNews({{ news.id }}, '{{ news.title|escapejs }}')">删除</button>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7" class="empty-row">暂无新闻公告数据</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+
+    <!-- 分页 -->
+    {% if page_obj.paginator.num_pages > 1 %}
+    <div class="pagination">
+      {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&q={{ q }}&type_id={{ type_id }}&date_from={{ date_from }}&date_to={{ date_to }}" class="page-link">上一页</a>
+      {% endif %}
+      {% for p in page_obj.paginator.page_range %}
+        {% if p == page_obj.number %}
+        <span class="page-link active">{{ p }}</span>
+        {% else %}
+        <a href="?page={{ p }}&q={{ q }}&type_id={{ type_id }}&date_from={{ date_from }}&date_to={{ date_to }}" class="page-link">{{ p }}</a>
+        {% endif %}
+      {% endfor %}
+      {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&q={{ q }}&type_id={{ type_id }}&date_from={{ date_from }}&date_to={{ date_to }}" class="page-link">下一页</a>
+      {% endif %}
+      <span class="page-info">共 {{ page_obj.paginator.count }} 条</span>
+    </div>
+    {% endif %}
+  </main>
+
+  <!-- 新增 / 编辑公告弹窗 -->
+  <div class="modal-overlay" id="newsModal" style="display:none">
+    <div class="modal modal-lg">
+      <div class="modal-header">
+        <span id="newsModalTitle">新增公告</span>
+        <button class="modal-close" onclick="closeNewsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="newsModalError" class="alert alert-error" style="display:none"></div>
+        <input type="hidden" id="newsId">
+        <div class="form-group">
+          <label for="newsTitle">标题 <span class="required">*</span></label>
+          <input type="text" id="newsTitle" class="form-control" placeholder="请输入公告标题" maxlength="200">
+        </div>
+        <div class="form-group">
+          <label for="newsContent">内容</label>
+          <textarea id="newsContent" class="form-control" rows="8" placeholder="请输入公告正文内容"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="newsAuthor">发布人</label>
+            <input type="text" id="newsAuthor" class="form-control" placeholder="发布人" maxlength="50">
+          </div>
+          <div class="form-group">
+            <label for="newsType">所属栏目 <span class="required">*</span></label>
+            <select id="newsType" class="form-control">
+              <option value="">请选择栏目</option>
+              {% for t in types %}
+              <option value="{{ t.id }}">{{ t.type_name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-default" onclick="closeNewsModal()">取消</button>
+        <button class="btn btn-primary" id="newsSaveBtn" onclick="saveNews()">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/js/main.js"></script>
+</body>
+</html>
