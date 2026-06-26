@@ -1,10 +1,11 @@
 ﻿"""Django settings for news_system project."""
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = "django-insecure-news-bulletin-system-2026-secret-key"
-DEBUG = True
+SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-news-bulletin-system-2026-secret-key")
+DEBUG = os.environ.get("DEBUG", "False").lower() == "true"
 ALLOWED_HOSTS = ["*"]
 
 INSTALLED_APPS = [
@@ -19,6 +20,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -62,7 +64,12 @@ USE_TZ = True
 
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
+STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/admin/login/"
+
+CSRF_TRUSTED_ORIGINS = ["https://*.railway.app"]
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
